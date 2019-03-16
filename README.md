@@ -1,3 +1,9 @@
+# Introduction
+
+This script can be used to perform sequenced downloads of various sensors logs for the robotcar-dataset <https://robotcar-dataset.robots.ox.ac.uk/>.
+
+The code is tested for Python2.
+
 # Example usage
 
 With the abbreviated file datasets.txt and file_patterns.txt examples provided run:
