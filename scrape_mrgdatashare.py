@@ -451,7 +451,7 @@ class Scraper:
             for chunk in result.iter_content(
                     chunk_size=throttle.chunk_length):
                 # bad url/no match for sensor
-                if "File not found." in chunk:
+                if b"File not found." in chunk:
                     return False
 
                 # count recent chunks
