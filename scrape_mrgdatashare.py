@@ -450,6 +450,10 @@ class Scraper:
             # iterate chunks
             for chunk in result.iter_content(
                     chunk_size=throttle.chunk_length):
+                # bad url/no match for sensor
+                if "File not found." in chunk:
+                    return False
+
                 # count recent chunks
                 throttle.count()
 
@@ -459,6 +463,9 @@ class Scraper:
 
             # close local file
             file_handle.close()
+
+        return True
+
 
 class Throttle:
     """Forces downloads to obey a conservative limit.
@@ -741,6 +748,7 @@ class Zipper:
         """
 
         print("unzipping local_file_path: " + url_handler.local_file_path)
+
         try:
             # open tar
             tar = tarfile.open(url_handler.local_file_path, "r:")
@@ -979,10 +987,10 @@ if __name__ == "__main__":
             url_handler = URLHandler(dataset_handler, file_pattern)
 
             # perform download
-            scraper.scrape(url_handler)
+            file_was_found = scraper.scrape(url_handler)
 
             # unzip
-            if not scraper.dry_run:
+            if file_was_found and not scraper.dry_run:
                 zipper.unzip(url_handler)
 
         # tidy up
