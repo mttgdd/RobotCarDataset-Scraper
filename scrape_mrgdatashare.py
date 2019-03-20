@@ -415,7 +415,6 @@ class Scraper:
 
         # get status code
         status_code = result.status_code
-        print("got status_code: " + str(status_code))
 
         # check for success
         text = result.text
@@ -435,7 +434,6 @@ class Scraper:
         # make request
         print("requesting file_url: " + url_handler.file_url)
         result = self.session_requests.get(url_handler.file_url, stream=True)
-        print("got status_code: " + str(result.status_code))
         if result.status_code != good_status_code:
             raise ValueError(
                 "bad file_url: " +
