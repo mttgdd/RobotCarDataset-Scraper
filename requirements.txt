@@ -2,4 +2,3 @@ argparse
 datetime
 lxml
 requests
-time
