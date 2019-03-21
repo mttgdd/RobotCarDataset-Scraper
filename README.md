@@ -15,7 +15,7 @@ docker build -t robotcar-dataset-scraper .
 Mount your downloads dir through the docker image:
 
 ```bash
-docker run --rm -it -w /root/RobotCarDataset-Scraper -v $HOME/Downloads:/root/Downloads robotcar-dataset-scraper:latest
+docker run --rm -it -w /RobotCarDataset-Scraper -v $HOME/Downloads:/Downloads robotcar-dataset-scraper:latest
 ```
 
 With the abbreviated file datasets.txt and file_patterns.txt examples provided run:
