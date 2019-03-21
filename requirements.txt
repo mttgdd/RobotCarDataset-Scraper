@@ -1,7 +1,6 @@
 argparse
 datetime
 lxml
-os
 requests
 shutil
 tarfile
