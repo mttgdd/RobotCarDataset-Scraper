@@ -11,3 +11,6 @@ RUN apt-get -y update \
 RUN git clone https://github.com/matthewgadd/RobotCarDataset-Scraper.git \
     && cd RobotCarDataset-Scraper \
     && pip install -r requirements.txt
+
+# entry point at a working dir
+ENTRYPOINT ["/bin/bash"]
