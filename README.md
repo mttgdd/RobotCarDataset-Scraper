@@ -7,6 +7,7 @@ The code is tested for Python2 on macOS High Sierra 10.13.4 and Ubuntu 16.04.
 # Getting started
 
 ```bash
+wget https://raw.githubusercontent.com/matthewgadd/RobotCarDataset-Scraper/master/Dockerfile
 docker build -t robotcar-dataset-scraper .
 ```
 
