@@ -21,7 +21,7 @@ import time
 
 # urls
 login_url = "https://mrgdatashare.robots.ox.ac.uk/"
-datasets_url = "http://robotcar-dataset.robots.ox.ac.uk/datasets/"
+datasets_url = "https://robotcar-dataset.robots.ox.ac.uk/datasets/"
 base_download_url = "http://mrgdatashare.robots.ox.ac.uk:80/download/?filename=datasets/"
 
 # responses
