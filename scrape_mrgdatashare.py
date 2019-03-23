@@ -29,7 +29,6 @@ good_status_code = 200
 failed_login = "Please try again or email for support"
 
 # filesystem
-dataset_example = "2014-05-06-12-54-54"
 tmp_dir = "/tmp"
 file_pattern_example = "vo"
 file_extension = ".tar"
@@ -46,9 +45,8 @@ class Datasets:
     """Reads and provides a list of datasets to scrape via CL, input file.
 
         Attributes:
-            dataset (string): Dataset to scrape.
             datasets_file (string): Location of file with list of datasets to scrape.
-            datasets (list): List of datasets that can be scraped.
+            datasets (list): List of datasets along with file patterns that can be scraped.
     """
 
     def __init__(self, parse_args):
@@ -59,36 +57,11 @@ class Datasets:
 
         """
 
-        # sanitise target dataset on CL
-        self.dataset = Datasets.get_dataset(parse_args)
-
         # check datasets file
         self.datasets_file = Datasets.get_dataset_file(parse_args)
 
         # read datasets file
         self.datasets = Datasets.get_datasets(self.datasets_file)
-
-        # validate dataset
-        self.validate()
-
-    @staticmethod
-    def get_dataset(parse_args):
-        """Gets query dataset from CL.
-
-        Args:
-            parse_args (list): List of input CL arguments.
-
-        Returns:
-            string: Dataset to scrape.
-
-        Raises:
-            IOError: When no dataset is provided on the CL.
-
-        """
-
-        if not parse_args.dataset:
-            raise IOError("Please specify option dataset.")
-        return parse_args.dataset
 
     @staticmethod
     def get_dataset_file(parse_args):
@@ -113,7 +86,7 @@ class Datasets:
 
     @staticmethod
     def get_datasets(datasets_file):
-        """Reads known datasets list from input file.
+        """Reads known datasets list and file patterns from input file.
 
         Args:
             datasets_file (string): Location of file with list of datasets to scrape.
@@ -123,147 +96,16 @@ class Datasets:
 
         """
 
-        datasets = [line.rstrip('\n')[:19] for line in open(
-            datasets_file)]
+        print("reading datasets_file: " + datasets_file)
+        datasets = []
+        with open(datasets_file, "r") as file_handle:
+            lines = file_handle.readlines()
+            for line in lines:
+                line = line.strip("\n").split(",")
+                dataset = {"dataset": line[0], "file_patterns": line[1:]}
+                datasets.append(dataset)
         print("got num_datasets: " + str(len(datasets)))
         return datasets
-
-    def validate(self):
-        """Sanity checks query dataset using known dataset list.
-
-        Raises:
-            ValueError: If query dataset is not known.
-
-        """
-
-        if self.dataset != wildcard and self.dataset not in self.datasets:
-            raise ValueError("Please specify a valid dataset.")
-
-    def check(self, dataset):
-        """Confirms whether a dataset should be downloaded in this session.
-
-        Args:
-            dataset (string): Dataset to scrape.
-
-        Returns:
-            bool: True if dataset should be downloaded, False if not.
-
-        """
-
-        return self.dataset == dataset or self.dataset == wildcard
-
-
-class FilePatterns:
-    """Reads and provides a list of file patterns to download via CL, input file.
-
-        Attributes:
-            file_pattern (string): File pattern to download.
-            file_patterns_file (string): Location of file with list of file patterns to download.
-            file_patterns (list): List of file patterns that can be downloaded.
-    """
-
-    def __init__(self, parse_args):
-        """Reads in file pattern query from CL and input file.
-
-        Args:
-            parse_args (list): List of input CL arguments.
-
-        """
-
-        # sanitise target file_pattern on CL
-        self.file_pattern = FilePatterns.get_file_pattern(parse_args)
-
-        # check file_patterns file
-        self.file_patterns_file = FilePatterns.get_file_pattern_file(
-            parse_args)
-
-        # read file_patterns file
-        self.file_patterns = FilePatterns.get_file_patterns(
-            self.file_patterns_file)
-
-        # validate file_pattern
-        self.validate()
-
-    @staticmethod
-    def get_file_pattern(parse_args):
-        """Get query file pattern from CL.
-
-        Args:
-            parse_args (list): List of input CL arguments.
-
-        Returns:
-            string: Query file pattern.
-
-        Raises:
-            IOError: If no file pattern is provided on the CL.
-
-        """
-
-        if not parse_args.file_pattern:
-            raise IOError("Please specify option file_pattern.")
-        return parse_args.file_pattern
-
-    @staticmethod
-    def get_file_pattern_file(parse_args):
-        """Gets input file from CL.
-
-        Args:
-            parse_args (list): List of input CL arguments.
-
-        Returns:
-            string: File patterns input file.
-
-        Raises:
-            IOError: If no input file is provided on the CL.
-
-        """
-
-        # check file_patterns file
-        if not parse_args.file_patterns_file:
-            raise IOError("Please specify option file_patterns_file.")
-        return os.path.abspath(
-            parse_args.file_patterns_file)
-
-    @staticmethod
-    def get_file_patterns(file_patterns_file):
-        """Reads known file patterns from input file.
-
-        Args:
-            file_patterns_file (string): Location of file with list of file patterns to download.
-
-        Returns:
-            list: Known file patterns.
-
-        """
-
-        file_patterns = [line.rstrip('\n') for line in open(
-            file_patterns_file)]
-        print("got num_file_patterns: " + str(len(file_patterns)))
-        return file_patterns
-
-    def validate(self):
-        """Sanity checks query file pattern using known file patterns.
-
-        Raises:
-            ValueError: If query file pattern is not known.
-
-        """
-
-        if self.file_pattern != wildcard and self.file_pattern not in self.file_patterns:
-            raise ValueError("Please specify a valid file_pattern.")
-
-    def check(self, file_pattern):
-        """Confirms whether a sensor log should be downloaded in this session.
-
-        Args:
-            file_pattern (string): File pattern to download.
-
-        Returns:
-            bool: True if sensor log should be downloaded, False if not.
-
-        """
-
-        return self.file_pattern == file_pattern or self.file_pattern == wildcard
 
 
 class Scraper:
@@ -703,17 +545,17 @@ class DatasetHandler:
         if not self.overwrite and os.path.exists(self.dataset_dir):
             raise ValueError(
                 "dataset: " +
-                dataset +
+                self.dataset +
                 " cannot be overwritten.")
         elif not self.overwrite and not os.path.exists(self.dataset_dir):
-            print("creating dataset: " + dataset)
+            print("creating dataset: " + self.dataset)
             os.mkdir(self.dataset_dir)
         elif self.overwrite and os.path.exists(self.dataset_dir):
-            print("overwriting dataset: " + dataset)
+            print("overwriting dataset: " + self.dataset)
             shutil.rmtree(self.dataset_dir)
             os.mkdir(self.dataset_dir)
         elif self.overwrite and not os.path.exists(self.dataset_dir):
-            print("creating dataset: " + dataset)
+            print("creating dataset: " + self.dataset)
             os.mkdir(self.dataset_dir)
 
 
@@ -886,25 +728,9 @@ if __name__ == "__main__":
         action="store_true",
         help="Check file URLs only?")
     argument_parser.add_argument(
-        "--dataset",
-        dest="dataset",
-        help="Dataset name from " + datasets_url + " e.g. " + dataset_example)
-    argument_parser.add_argument(
         "--datasets_file",
         dest="datasets_file",
         help="List of dataset names from " +
-             datasets_url + " - separated by new lines.")
-    argument_parser.add_argument(
-        "--file_pattern",
-        dest="file_pattern",
-        help="File pattern from " +
-             datasets_url +
-             " e.g. " +
-             file_pattern_example)
-    argument_parser.add_argument(
-        "--file_patterns_file",
-        dest="file_patterns_file",
-        help="List of file patterns from " +
              datasets_url + " - separated by new lines.")
     argument_parser.add_argument(
         "--downloads_dir",
@@ -942,10 +768,7 @@ if __name__ == "__main__":
     parse_args = argument_parser.parse_args()
 
     # set up datasets file
-    datasets = Datasets(parse_args)
-
-    # set up file patterns file
-    file_patterns = FilePatterns(parse_args)
+    datasets = Datasets(parse_args).datasets
 
     # persistent login
     scraper = Scraper(parse_args)
@@ -957,16 +780,12 @@ if __name__ == "__main__":
     throttle = Throttle(parse_args)
 
     # iterate datasets
-    for dataset in datasets.datasets:
+    for dataset in datasets:
         # apply throttle
         throttle.wait()
 
-        # check dataset
-        if not datasets.check(dataset):
-            continue
-
         # dataset handler
-        dataset_handler = DatasetHandler(parse_args, dataset)
+        dataset_handler = DatasetHandler(parse_args, dataset["dataset"])
 
         # check overwrite
         if not scraper.dry_run:
@@ -976,11 +795,7 @@ if __name__ == "__main__":
         zipper = Zipper(dataset_handler)
 
         # iterate file patterns
-        for file_pattern in file_patterns.file_patterns:
-            # check file pattern
-            if not file_patterns.check(file_pattern):
-                continue
-
+        for file_pattern in dataset["file_patterns"]:
             # set up URL handler
             url_handler = URLHandler(dataset_handler, file_pattern)
 
