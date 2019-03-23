@@ -24,8 +24,10 @@ def main():
     text = result.text
 
     # parse response text
-    text_locations = [text_location.end() for text_location in re.finditer(datasets_url, text)]
-    datasets = [str(text[text_location:text_location + 19]) for text_location in text_locations]
+    text_locations = [text_location.end()
+                      for text_location in re.finditer(datasets_url, text)]
+    datasets = [str(text[text_location:text_location + 19])
+                for text_location in text_locations]
 
     # ignore metadata and sort unique datasets
     datasets = datasets[2:]
@@ -42,7 +44,9 @@ def main():
             text = result.text
 
             # parse text for sensor type
-            start = [text_location.end() for text_location in re.finditer("download/\?filename=datasets", text)]
+            start = [
+                text_location.end() for text_location in re.finditer(
+                    "download/\?filename=datasets", text)]
             sensor_types = []
             for s in start:
                 ss = s
