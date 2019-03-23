@@ -19,14 +19,14 @@ Mount your downloads dir through the docker image:
 docker run --rm -it -w /RobotCarDataset-Scraper -v $HOME/Downloads:/Downloads robotcar-dataset-scraper:latest
 ```
 
-With the abbreviated file datasets.txt and file_patterns.txt examples provided run:
+The script
 
 ```bash
-python scrape_mrgdatashare.py --downloads_dir /Downloads --dataset "*" --datasets_file datasets.txt --file_pattern "*" --file_patterns_file file_patterns.txt --username USERNAME --password PASSWORD
+python get_datasets.py
 ```
 
-and a file ~/Downloads/2014-05-06-12-54-54/vo/vo.csv should be downloaded, and extracted.
+parses the html for the complete dataset listing and scrapes each dataset page and retrieves the available files (tar) for download. With the example output file datasets.csv provided, you should then run:
 
-A more thorough example is provided in the files datasets-custom.txt and file-patterns-custom.txt, capturing many datasets and a few different sensor types.
-
-The script get_datasets.py has been used to parse the html for the complete dataset listing and to generate the datasets-long.txt.
+```bash
+python scrape_mrgdatashare.py --downloads_dir /Downloads --datasets_file datasets.csv --username USERNAME --password PASSWORD
+```
