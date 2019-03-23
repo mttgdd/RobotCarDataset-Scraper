@@ -284,7 +284,9 @@ class Scraper:
         # download file
         if not self.dry_run:
             # open local file
-            print("downloading local_file_path: " + url_handler.local_file_path)
+            print(
+                "downloading local_file_path: " +
+                url_handler.local_file_path)
             file_handle = open(url_handler.local_file_path, 'wb')
 
             # iterate chunks
@@ -430,7 +432,7 @@ class Throttle:
         """
 
         period_seconds = self.period_duration - \
-                         (datetime.datetime.now() - self.period).seconds
+            (datetime.datetime.now() - self.period).seconds
         # console
         print("num_chunks_in_period: " + str(self.num_chunks_in_period) +
               ", period_seconds: " + str(period_seconds))
@@ -443,9 +445,9 @@ class Throttle:
         """
 
         print(
-                "pausing for throttle for period_seconds: " +
-                str(period_seconds) +
-                "...")
+            "pausing for throttle for period_seconds: " +
+            str(period_seconds) +
+            "...")
         time.sleep(period_seconds)
 
     def count(self):
@@ -603,8 +605,8 @@ class Zipper:
             self.num_successful_unzipped = self.num_successful_unzipped + 1
         except tarfile.ReadError:
             print(
-                    "failed when unzipping local_file_path: " +
-                    url_handler.local_file_path)
+                "failed when unzipping local_file_path: " +
+                url_handler.local_file_path)
 
         # clear tar
         os.remove(url_handler.local_file_path)
@@ -680,7 +682,7 @@ class URLHandler:
         """
 
         return base_download_url + dataset_handler.dataset + "/" + \
-               dataset_handler.dataset + "_" + file_pattern + file_extension
+            dataset_handler.dataset + "_" + file_pattern + file_extension
 
     @staticmethod
     def get_local_file_path(file_url, dataset_handler):
