@@ -34,7 +34,7 @@ def main():
     datasets = sorted(list(set(datasets)))
 
     # write output text file
-    datasets_file = "datasets-n-sensors.csv"
+    datasets_file = "datasets.csv"
     with open(datasets_file, "w") as file_handle:
         # iterate datasets
         for dataset in datasets:
