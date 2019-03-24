@@ -2,7 +2,13 @@
 
 This script can be used to perform sequenced downloads of various sensors logs for the robotcar-dataset <https://robotcar-dataset.robots.ox.ac.uk/>.
 
-The code is tested for Python2 on macOS High Sierra 10.13.4 and Ubuntu 16.04.
+The code is tested for Python2 and Python3 on macOS High Sierra 10.13.4 and Ubuntu 16.04.
+
+The python version you prefer should be aliased on your system as
+
+```bash
+python
+```
 
 # Getting started
 
