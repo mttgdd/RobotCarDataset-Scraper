@@ -30,12 +30,10 @@ failed_login = "Please try again or email for support"
 
 # filesystem
 tmp_dir = "/tmp"
-file_pattern_example = "vo"
 file_extension = ".tar"
 downloads_dir_example = os.path.expanduser("~/Downloads")
-wildcard = "*"
 
-# throttle
+# throttle params
 default_period_duration = 10 * 60
 default_chunks_per_period = 1000
 default_chunk_length = 1 * 1024
@@ -464,7 +462,7 @@ class DatasetHandler:
         # should datasets be overwritten?
         self.overwrite = DatasetHandler.get_overwrite(parse_args)
 
-        # dataset to download, or wildcard
+        # dataset to download
         self.dataset = dataset
 
         # dataset download dir
