@@ -115,7 +115,6 @@ class Scraper:
                 username (string): RCD login username.
                 password (string): RCD login password.
                 session_requests (requests.Session): Persistent login session.
-                dry_run (bool): Perform downloads (False) or check URLs (True)
     """
 
     def __init__(self, parse_args):
@@ -129,7 +128,6 @@ class Scraper:
         # credentials
         self.username = Scraper.get_username(parse_args)
         self.password = Scraper.get_password(parse_args)
-        self.dry_run = Scraper.get_dry_run(parse_args)
 
         # persistent login session
         self.session_requests = requests.session()
@@ -171,23 +169,6 @@ class Scraper:
         if not parse_args.password:
             raise IOError("Please specify option password.")
         return parse_args.password
-
-    @staticmethod
-    def get_dry_run(parse_args):
-        """Retrieves dry run config from CL.
-
-        Args:
-            parse_args (list): List of input CL arguments.
-
-        Returns:
-            bool: Perform downloads (False) or check URLs (True).
-
-        Raises:
-            IOError: If dry run is not provided on the CL.
-
-        """
-
-        return parse_args.dry_run
 
     def login(self):
         """Initialises the login session using credentials.
@@ -281,30 +262,28 @@ class Scraper:
                 "bad file_url: " +
                 url_handler.file_url)
 
-        # download file
-        if not self.dry_run:
-            # open local file
-            print(
-                "downloading local_file_path: " +
-                url_handler.local_file_path)
-            file_handle = open(url_handler.local_file_path, 'wb')
+        # open local file
+        print(
+            "downloading local_file_path: " +
+            url_handler.local_file_path)
+        file_handle = open(url_handler.local_file_path, 'wb')
 
-            # iterate chunks
-            for chunk in result.iter_content(
-                    chunk_size=throttle.chunk_length):
-                # bad url/no match for sensor
-                if b"File not found." in chunk:
-                    return False
+        # iterate chunks
+        for chunk in result.iter_content(
+                chunk_size=throttle.chunk_length):
+            # bad url/no match for sensor
+            if b"File not found." in chunk:
+                return False
 
-                # count recent chunks
-                throttle.count()
+            # count recent chunks
+            throttle.count()
 
-                # filter out keep-alive new chunks
-                if chunk:
-                    file_handle.write(chunk)
+            # filter out keep-alive new chunks
+            if chunk:
+                file_handle.write(chunk)
 
-            # close local file
-            file_handle.close()
+        # close local file
+        file_handle.close()
 
         return True
 
@@ -726,10 +705,6 @@ if __name__ == "__main__":
         dest="password",
         help="Registered password for " + login_url)
     argument_parser.add_argument(
-        "--dry_run",
-        action="store_true",
-        help="Check file URLs only?")
-    argument_parser.add_argument(
         "--datasets_file",
         dest="datasets_file",
         help="List of dataset names from " +
@@ -790,8 +765,7 @@ if __name__ == "__main__":
         dataset_handler = DatasetHandler(parse_args, dataset["dataset"])
 
         # check overwrite
-        if not scraper.dry_run:
-            dataset_handler.check()
+        dataset_handler.check()
 
         # set up zipper
         zipper = Zipper(dataset_handler)
@@ -805,12 +779,11 @@ if __name__ == "__main__":
             file_was_found = scraper.scrape(url_handler)
 
             # unzip
-            if file_was_found and not scraper.dry_run:
+            if file_was_found:
                 zipper.unzip(url_handler)
 
         # tidy up
-        if not scraper.dry_run:
-            zipper.tidy_up()
+        zipper.tidy_up()
 
     # console
     print("ScrapeMRGDatashare is finished!")
