@@ -29,7 +29,6 @@ good_status_code = 200
 failed_login = "Please try again or email for support"
 
 # filesystem
-tmp_dir = "/tmp"
 file_extension = ".tar"
 downloads_dir_example = os.path.expanduser("~/Downloads")
 
@@ -440,11 +439,9 @@ class DatasetHandler:
 
             Attributes:
                 downloads_dir (string): Root download directory.
-                overwrite (bool): Overwrite pre-downloaded datasets?
                 dataset (string): Dataset to download.
                 dataset_dir (string): Dataset's download directory.
-                tar_dir (string): Exctraction directory.
-                tmp_dir (string): Temporary directory.
+                tar_dir (string): Extraction directory.
     """
 
     def __init__(self, parse_args, dataset):
@@ -459,20 +456,8 @@ class DatasetHandler:
         # root download dir
         self.downloads_dir = DatasetHandler.get_downloads_dir(parse_args)
 
-        # should datasets be overwritten?
-        self.overwrite = DatasetHandler.get_overwrite(parse_args)
-
         # dataset to download
         self.dataset = dataset
-
-        # dataset download dir
-        self.dataset_dir = os.path.join(self.downloads_dir, self.dataset)
-
-        # tar extractions
-        self.tar_dir = os.path.join(self.dataset_dir, self.dataset)
-
-        # temporary holding dir
-        self.tmp_dir = os.path.join(tmp_dir, self.dataset)
 
     @staticmethod
     def get_downloads_dir(parse_args):
@@ -492,51 +477,6 @@ class DatasetHandler:
         if not parse_args.downloads_dir:
             raise IOError("Please specify option downloads_dir.")
         return os.path.abspath(parse_args.downloads_dir)
-
-    @staticmethod
-    def get_overwrite(parse_args):
-        """Confirms overwrite behaviour using the CL.
-
-        Args:
-            parse_args (list): List of input CL arguments.
-
-        Returns:
-            bool: Overwrite behaviour.
-
-        Raises:
-            IOError: If overwrite was not provided on the CL.
-
-        """
-
-        if not parse_args.overwrite:
-            raise IOError("Please specify option overwrite.")
-        return parse_args.overwrite
-
-    def check(self):
-        """Checks dataset download directory and tries to overwrite if it exists.
-
-        Raises:
-            ValueError: If an existing dataset cannot be overwritten based on the CL and file system.
-
-        """
-
-        # confirm overwrite
-        if not self.overwrite and os.path.exists(self.dataset_dir):
-            raise ValueError(
-                "dataset: " +
-                self.dataset +
-                " cannot be overwritten.")
-        elif not self.overwrite and not os.path.exists(self.dataset_dir):
-            print("creating dataset: " + self.dataset)
-            os.mkdir(self.dataset_dir)
-        elif self.overwrite and os.path.exists(self.dataset_dir):
-            print("overwriting dataset: " + self.dataset)
-            shutil.rmtree(self.dataset_dir)
-            os.mkdir(self.dataset_dir)
-        elif self.overwrite and not os.path.exists(self.dataset_dir):
-            print("creating dataset: " + self.dataset)
-            os.mkdir(self.dataset_dir)
-
 
 class Zipper:
     """Performs archiving operations on local file system.
@@ -567,13 +507,12 @@ class Zipper:
         """
 
         print("unzipping local_file_path: " + url_handler.local_file_path)
-
         try:
             # open tar
             tar = tarfile.open(url_handler.local_file_path, "r:")
 
             # do extraction
-            tar.extractall(path=self.dataset_handler.dataset_dir)
+            tar.extractall(path=self.dataset_handler.downloads_dir)
 
             # close tar file
             tar.close()
@@ -595,25 +534,6 @@ class Zipper:
 
         # tidy up
         print("tidying up dataset: " + self.dataset_handler.dataset)
-        if self.num_successful_unzipped != 0:
-            # copy extracted contents to tmp
-            shutil.copytree(
-                self.dataset_handler.tar_dir,
-                self.dataset_handler.tmp_dir)
-
-            # delete root download
-            shutil.rmtree(self.dataset_handler.dataset_dir)
-
-            # move extracted files back to root download
-            shutil.copytree(
-                self.dataset_handler.tmp_dir,
-                self.dataset_handler.dataset_dir)
-
-            # clear tmp files
-            shutil.rmtree(self.dataset_handler.tmp_dir)
-        else:
-            # no data was downloaded, remove empty folder
-            shutil.rmtree(self.dataset_handler.dataset_dir)
 
 
 class URLHandler:
@@ -679,7 +599,7 @@ class URLHandler:
 
         # extend dataset dir
         local_file_path = os.path.join(
-            dataset_handler.dataset_dir, local_file_name)
+            dataset_handler.downloads_dir, local_file_name)
 
         return local_file_path
 
@@ -712,11 +632,6 @@ if __name__ == "__main__":
         dest="downloads_dir",
         default=downloads_dir_example,
         help="Root download directory e.g. " + downloads_dir_example)
-    argument_parser.add_argument(
-        "--overwrite",
-        type=bool,
-        default=True,
-        help="Overwrite datasets already downloaded?")
     argument_parser.add_argument(
         "--period_duration",
         dest="period_duration",
@@ -761,9 +676,6 @@ if __name__ == "__main__":
 
         # dataset handler
         dataset_handler = DatasetHandler(parse_args, dataset["dataset"])
-
-        # check overwrite
-        dataset_handler.check()
 
         # set up zipper
         zipper = Zipper(dataset_handler)
