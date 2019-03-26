@@ -15,9 +15,10 @@ import datetime
 from lxml import html
 import os
 import requests
-import shutil
 import tarfile
 import time
+from tqdm import tqdm
+import math
 
 # urls
 login_url = "https://mrgdatashare.robots.ox.ac.uk/"
@@ -261,13 +262,17 @@ class Scraper:
 
         # open local file
         print(
-            "downloading local_file_path: " +
-            url_handler.local_file_path)
+                "downloading local_file_path: " +
+                url_handler.local_file_path)
         file_handle = open(url_handler.local_file_path, 'wb')
 
         # iterate chunks
-        for chunk in result.iter_content(
-                chunk_size=throttle.chunk_length):
+        total_size = int(result.headers.get('content-length', 0))
+        for chunk in tqdm(result.iter_content(
+                chunk_size=throttle.chunk_length),
+                total=math.ceil(total_size // int(throttle.chunk_length)),
+                unit='KB',
+                unit_scale=True):
             # bad url/no match for sensor
             if b"File not found." in chunk:
                 return False
@@ -408,7 +413,7 @@ class Throttle:
         """
 
         period_seconds = self.period_duration - \
-            (datetime.datetime.now() - self.period).seconds
+                         (datetime.datetime.now() - self.period).seconds
         # console
         print("num_chunks_in_period: " + str(self.num_chunks_in_period) +
               ", period_seconds: " + str(period_seconds))
@@ -421,9 +426,9 @@ class Throttle:
         """
 
         print(
-            "pausing for throttle for period_seconds: " +
-            str(period_seconds) +
-            "...")
+                "pausing for throttle for period_seconds: " +
+                str(period_seconds) +
+                "...")
         time.sleep(period_seconds)
 
     def count(self):
@@ -478,6 +483,7 @@ class DatasetHandler:
             raise IOError("Please specify option downloads_dir.")
         return os.path.abspath(parse_args.downloads_dir)
 
+
 class Zipper:
     """Performs archiving operations on local file system.
 
@@ -521,8 +527,8 @@ class Zipper:
             self.num_successful_unzipped = self.num_successful_unzipped + 1
         except tarfile.ReadError:
             print(
-                "failed when unzipping local_file_path: " +
-                url_handler.local_file_path)
+                    "failed when unzipping local_file_path: " +
+                    url_handler.local_file_path)
 
         # clear tar
         os.remove(url_handler.local_file_path)
@@ -579,7 +585,7 @@ class URLHandler:
         """
 
         return base_download_url + dataset_handler.dataset + "/" + \
-            dataset_handler.dataset + "_" + file_pattern + file_extension
+               dataset_handler.dataset + "_" + file_pattern + file_extension
 
     @staticmethod
     def get_local_file_path(file_url, dataset_handler):
