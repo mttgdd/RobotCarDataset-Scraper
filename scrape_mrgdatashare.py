@@ -38,6 +38,11 @@ default_period_duration = 10 * 60
 default_chunks_per_period = 1000
 default_chunk_length = 1 * 1024
 
+# download errors handling params
+default_reloging_duration = 10 * 60
+default_nb_tries_reconnection = 5
+default_reconnection_duration = 10 * 60
+
 
 class Datasets:
     """Reads and provides a list of datasets to scrape via CL, input file.
@@ -129,6 +134,9 @@ class Scraper:
 
         # persistent login session
         self.session_requests = requests.session()
+
+        # errors handling
+        self.reloging_duration = parse_args.reloging_duration
 
     @staticmethod
     def get_username(parse_args):
@@ -260,32 +268,40 @@ class Scraper:
                 "bad file_url: " +
                 url_handler.file_url)
 
+        while 'html' in result.headers.get('content-type', 'html'):
+            print(f"Got html file as result. Wait {self.reloging_duration} seconds and re-loging...")
+            time.sleep(self.reloging_duration)
+            self.login()
+            result = self.session_requests.get(url_handler.file_url, stream=True)
+
         # open local file
         print(
                 "downloading local_file_path: " +
                 url_handler.local_file_path)
-        file_handle = open(url_handler.local_file_path, 'wb')
 
-        # iterate chunks
-        total_size = int(result.headers.get('content-length', 0))
-        for chunk in tqdm(result.iter_content(
-                chunk_size=throttle.chunk_length),
-                total=math.ceil(total_size // int(throttle.chunk_length)),
-                unit='KB',
-                unit_scale=True):
-            # bad url/no match for sensor
-            if b"File not found." in chunk:
-                return False
+        agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
+        result.headers.update({'user-agent': agent})
 
-            # count recent chunks
-            throttle.count()
+        with open(url_handler.local_file_path, 'wb') as file_handle:
 
-            # filter out keep-alive new chunks
-            if chunk:
-                file_handle.write(chunk)
+            # iterate chunks
+            total_size = int(result.headers.get('content-length', 0))
+            for chunk in tqdm(result.iter_content(
+                    chunk_size=throttle.chunk_length),
+                    total=math.ceil(total_size // int(throttle.chunk_length)),
+                    unit='KB',
+                    unit_scale=True):
+                # bad url/no match for sensor
+                if b"File not found." in chunk:
+                    return False
 
-        # close local file
-        file_handle.close()
+                # count recent chunks
+                throttle.count()
+
+                # filter out keep-alive new chunks
+                if chunk:
+                    file_handle.write(chunk)
+
 
         return True
 
@@ -659,6 +675,27 @@ if __name__ == "__main__":
         default=default_chunks_per_period,
         help="Maximum number of chunks to download in a throttled download period e.g. " +
              str(default_chunks_per_period))
+    argument_parser.add_argument(
+        "--reloging_duration",
+        dest="reloging_duration",
+        type=int,
+        default=default_reloging_duration,
+        help="Number of seconds to wait in case you are disconnected (if you don't use an academic connection) e.g. " +
+             str(default_reloging_duration))
+    argument_parser.add_argument(
+        "--reconnection_duration",
+        dest="reconnection_duration",
+        type=int,
+        default=default_reconnection_duration,
+        help="Number of seconds to wait if the connection is broken (if you don't use an academic connection) e.g. " +
+             str(default_reconnection_duration))
+    argument_parser.add_argument(
+        "--nb_tries",
+        dest="nb_tries_reconnection",
+        type=int,
+        default=default_nb_tries_reconnection,
+        help="Number of downloading tries for a file  e.g. " +
+             str(default_nb_tries_reconnection))
 
     # parse CL
     parse_args = argument_parser.parse_args()
@@ -692,7 +729,13 @@ if __name__ == "__main__":
             url_handler = URLHandler(dataset_handler, file_pattern)
 
             # perform download
-            file_was_found = scraper.scrape(url_handler)
+            for i in range(parse_args.nb_tries_reconnection):
+                try:
+                    file_was_found = scraper.scrape(url_handler)
+                    if file_was_found: break
+                except requests.exceptions.ChunkedEncodingError:
+                    print(f"Connection broken on try {i+1}/5, wait {parse_args.reconnection_duration} seconds and restart downloading: ")
+                    time.sleep(parse_args.reconnection_duration)
 
             # unzip
             if file_was_found:
