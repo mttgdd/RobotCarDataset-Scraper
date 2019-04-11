@@ -734,7 +734,7 @@ if __name__ == "__main__":
                     file_was_found = scraper.scrape(url_handler)
                     if file_was_found: break
                 except requests.exceptions.ChunkedEncodingError:
-                    print(f"Connection broken on try {i+1}/5, wait {parse_args.reconnection_duration} seconds and restart downloading: ")
+                    print("Connection broken on try {i+1}/5, wait {parse_args.reconnection_duration} seconds and restart downloading: ")
                     time.sleep(parse_args.reconnection_duration)
 
             # unzip
