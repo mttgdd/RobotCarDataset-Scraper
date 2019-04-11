@@ -269,7 +269,7 @@ class Scraper:
                 url_handler.file_url)
 
         while 'html' in result.headers.get('content-type', 'html'):
-            print(f"Got html file as result. Wait {self.reloging_duration} seconds and re-loging...")
+            print("Got html file as result. Wait {self.reloging_duration} seconds and re-loging...")
             time.sleep(self.reloging_duration)
             self.login()
             result = self.session_requests.get(url_handler.file_url, stream=True)
