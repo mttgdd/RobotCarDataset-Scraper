@@ -269,15 +269,17 @@ class Scraper:
                 url_handler.file_url)
 
         while 'html' in result.headers.get('content-type', 'html'):
-            print("Got html file as result. Wait {self.relogin_duration} seconds and re-loging...")
+            print(
+                "Got html file as result. Wait {self.relogin_duration} seconds and re-loging...")
             time.sleep(self.relogin_duration)
             self.login()
-            result = self.session_requests.get(url_handler.file_url, stream=True)
+            result = self.session_requests.get(
+                url_handler.file_url, stream=True)
 
         # open local file
         print(
-                "downloading local_file_path: " +
-                url_handler.local_file_path)
+            "downloading local_file_path: " +
+            url_handler.local_file_path)
 
         agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
         result.headers.update({'user-agent': agent})
@@ -301,7 +303,6 @@ class Scraper:
                 # filter out keep-alive new chunks
                 if chunk:
                     file_handle.write(chunk)
-
 
         return True
 
@@ -429,7 +430,7 @@ class Throttle:
         """
 
         period_seconds = self.period_duration - \
-                         (datetime.datetime.now() - self.period).seconds
+            (datetime.datetime.now() - self.period).seconds
         # console
         print("num_chunks_in_period: " + str(self.num_chunks_in_period) +
               ", period_seconds: " + str(period_seconds))
@@ -442,9 +443,9 @@ class Throttle:
         """
 
         print(
-                "pausing for throttle for period_seconds: " +
-                str(period_seconds) +
-                "...")
+            "pausing for throttle for period_seconds: " +
+            str(period_seconds) +
+            "...")
         time.sleep(period_seconds)
 
     def count(self):
@@ -543,8 +544,8 @@ class Zipper:
             self.num_successful_unzipped = self.num_successful_unzipped + 1
         except tarfile.ReadError:
             print(
-                    "failed when unzipping local_file_path: " +
-                    url_handler.local_file_path)
+                "failed when unzipping local_file_path: " +
+                url_handler.local_file_path)
 
         # clear tar
         os.remove(url_handler.local_file_path)
@@ -601,7 +602,7 @@ class URLHandler:
         """
 
         return base_download_url + dataset_handler.dataset + "/" + \
-               dataset_handler.dataset + "_" + file_pattern + file_extension
+            dataset_handler.dataset + "_" + file_pattern + file_extension
 
     @staticmethod
     def get_local_file_path(file_url, dataset_handler):
@@ -732,9 +733,11 @@ if __name__ == "__main__":
             for i in range(parse_args.nb_tries_reconnection):
                 try:
                     file_was_found = scraper.scrape(url_handler)
-                    if file_was_found: break
+                    if file_was_found:
+                        break
                 except requests.exceptions.ChunkedEncodingError:
-                    print("Connection broken on try {i+1}/5, wait {parse_args.reconnection_duration} seconds and restart downloading: ")
+                    print(
+                        "Connection broken on try {i+1}/5, wait {parse_args.reconnection_duration} seconds and restart downloading: ")
                     time.sleep(parse_args.reconnection_duration)
 
             # unzip
