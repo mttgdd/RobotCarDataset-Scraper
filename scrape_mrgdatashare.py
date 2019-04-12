@@ -39,7 +39,7 @@ default_chunks_per_period = 1000
 default_chunk_length = 1 * 1024
 
 # download errors handling params
-default_reloging_duration = 10 * 60
+default_relogin_duration = 10 * 60
 default_nb_tries_reconnection = 5
 default_reconnection_duration = 10 * 60
 
@@ -136,7 +136,7 @@ class Scraper:
         self.session_requests = requests.session()
 
         # errors handling
-        self.reloging_duration = parse_args.reloging_duration
+        self.relogin_duration = parse_args.relogin_duration
 
     @staticmethod
     def get_username(parse_args):
@@ -269,8 +269,8 @@ class Scraper:
                 url_handler.file_url)
 
         while 'html' in result.headers.get('content-type', 'html'):
-            print("Got html file as result. Wait {self.reloging_duration} seconds and re-loging...")
-            time.sleep(self.reloging_duration)
+            print("Got html file as result. Wait {self.relogin_duration} seconds and re-loging...")
+            time.sleep(self.relogin_duration)
             self.login()
             result = self.session_requests.get(url_handler.file_url, stream=True)
 
@@ -676,12 +676,12 @@ if __name__ == "__main__":
         help="Maximum number of chunks to download in a throttled download period e.g. " +
              str(default_chunks_per_period))
     argument_parser.add_argument(
-        "--reloging_duration",
-        dest="reloging_duration",
+        "--relogin_duration",
+        dest="relogin_duration",
         type=int,
-        default=default_reloging_duration,
+        default=default_relogin_duration,
         help="Number of seconds to wait in case you are disconnected (if you don't use an academic connection) e.g. " +
-             str(default_reloging_duration))
+             str(default_relogin_duration))
     argument_parser.add_argument(
         "--reconnection_duration",
         dest="reconnection_duration",
