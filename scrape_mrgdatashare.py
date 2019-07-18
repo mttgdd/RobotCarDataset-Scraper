@@ -728,6 +728,7 @@ if __name__ == "__main__":
             url_handler = URLHandler(dataset_handler, file_pattern)
 
             # perform download
+            file_was_found = False
             for i in range(parse_args.nb_tries_reconnection):
                 try:
                     file_was_found = scraper.scrape(url_handler)
