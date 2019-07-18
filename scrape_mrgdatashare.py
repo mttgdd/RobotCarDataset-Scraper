@@ -697,19 +697,19 @@ if __name__ == "__main__":
              str(default_nb_tries_reconnection))
 
     # parse CL
-    parse_args = argument_parser.parse_args()
+    args = argument_parser.parse_args()
 
     # set up datasets file
-    datasets = Datasets(parse_args).datasets
+    datasets = Datasets(args).datasets
 
     # persistent login
-    scraper = Scraper(parse_args)
+    scraper = Scraper(args)
 
     # load cookies
     scraper.login()
 
     # start throttle
-    throttle = Throttle(parse_args)
+    throttle = Throttle(args)
 
     # iterate datasets
     for dataset in datasets:
@@ -717,7 +717,7 @@ if __name__ == "__main__":
         throttle.wait()
 
         # dataset handler
-        dataset_handler = DatasetHandler(parse_args, dataset["dataset"])
+        dataset_handler = DatasetHandler(args, dataset["dataset"])
 
         # set up zipper
         zipper = Zipper(dataset_handler)
@@ -729,7 +729,7 @@ if __name__ == "__main__":
 
             # perform download
             file_was_found = False
-            for i in range(parse_args.nb_tries_reconnection):
+            for i in range(args.nb_tries_reconnection):
                 try:
                     file_was_found = scraper.scrape(url_handler)
                     if file_was_found:
@@ -737,7 +737,7 @@ if __name__ == "__main__":
                 except requests.exceptions.ChunkedEncodingError:
                     print(
                         "Connection broken on try {i+1}/5, wait {parse_args.reconnection_duration} seconds and restart downloading: ")
-                    time.sleep(parse_args.reconnection_duration)
+                    time.sleep(args.reconnection_duration)
 
             # unzip
             if file_was_found:
