@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 '''
 Downloads files matching patterns from the Oxford Robotcar Dataset website.
 

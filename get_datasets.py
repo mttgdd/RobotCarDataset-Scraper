@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 '''
 Gets a list of available datasets from the Oxford Robotcar Dataset website.
 
