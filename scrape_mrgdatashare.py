@@ -1,11 +1,11 @@
-'''
+"""
 Downloads files matching patterns from the Oxford Robotcar Dataset website.
 
 Matt Gadd
 Jan 2018
 Oxford Robotics Institute, Oxford University.
 
-'''
+"""
 
 # imports
 import argparse
@@ -202,7 +202,7 @@ class Scraper:
 
         # get authentication token
         csrf_middleware_token = list(
-            set(tree.xpath("//input[@name='csrfmiddlewaretoken']/@value")))[0]
+            set(tree.xpath("//input[@name="csrfmiddlewaretoken"]/@value")))[0]
         print("got csrf_middleware_token: " + csrf_middleware_token)
 
         return csrf_middleware_token
@@ -266,7 +266,7 @@ class Scraper:
                 "bad file_url: " +
                 url_handler.file_url)
 
-        while 'html' in result.headers.get('content-type', 'html'):
+        while "html" in result.headers.get("content-type", "html"):
             print(
                 "Got html file as result. Wait {self.relogin_duration} seconds and re-loging...")
             time.sleep(self.relogin_duration)
@@ -279,17 +279,17 @@ class Scraper:
             "downloading local_file_path: " +
             url_handler.local_file_path)
 
-        agent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
-        result.headers.update({'user-agent': agent})
+        agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36"
+        result.headers.update({"user-agent": agent})
 
-        with open(url_handler.local_file_path, 'wb') as file_handle:
+        with open(url_handler.local_file_path, "wb") as file_handle:
 
             # iterate chunks
-            total_size = int(result.headers.get('content-length', 0))
+            total_size = int(result.headers.get("content-length", 0))
             for chunk in tqdm(result.iter_content(
                     chunk_size=throttle.chunk_length),
                     total=math.ceil(total_size // int(throttle.chunk_length)),
-                    unit='KB',
+                    unit="KB",
                     unit_scale=True):
                 # bad url/no match for sensor
                 if b"File not found." in chunk:
@@ -460,7 +460,7 @@ class DatasetHandler:
             Attributes:
                 downloads_dir (string): Root download directory.
                 dataset (string): Dataset to download.
-                dataset_dir (string): Dataset's download directory.
+                dataset_dir (string): Dataset"s download directory.
                 tar_dir (string): Extraction directory.
     """
 
@@ -549,7 +549,7 @@ class Zipper:
         os.remove(url_handler.local_file_path)
 
     def tidy_up(self):
-        """Tidies up dataset's download directory.
+        """Tidies up dataset"s download directory.
 
         """
 
@@ -616,7 +616,7 @@ class URLHandler:
         """
 
         # get stem from ULR
-        local_file_name = file_url.split('/')[-1]
+        local_file_name = file_url.split("/")[-1]
 
         # extend dataset dir
         local_file_path = os.path.join(
@@ -679,14 +679,14 @@ if __name__ == "__main__":
         dest="relogin_duration",
         type=int,
         default=default_relogin_duration,
-        help="Number of seconds to wait in case you are disconnected (if you don't use an academic connection) e.g. " +
+        help="Number of seconds to wait in case you are disconnected (if you don"t use an academic connection) e.g. " +
              str(default_relogin_duration))
     argument_parser.add_argument(
         "--reconnection_duration",
         dest="reconnection_duration",
         type=int,
         default=default_reconnection_duration,
-        help="Number of seconds to wait if the connection is broken (if you don't use an academic connection) e.g. " +
+        help="Number of seconds to wait if the connection is broken (if you don"t use an academic connection) e.g. " +
              str(default_reconnection_duration))
     argument_parser.add_argument(
         "--nb_tries",
