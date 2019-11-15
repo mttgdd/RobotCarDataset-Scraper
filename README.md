@@ -6,9 +6,17 @@ The code is tested for Python3 on Ubuntu 16.04.
 
 # Getting started
 
+A prebuilt docker image is available with:
+
+```bash
+docker pull matthewgadd/robotcar-dataset-scraper:latest
+```
+
+Otherwise, you can build the docker image from scratch:
+
 ```bash
 wget https://raw.githubusercontent.com/matthewgadd/RobotCarDataset-Scraper/master/Dockerfile
-docker build -t robotcar-dataset-scraper .
+docker build -t matthewgadd/robotcar-dataset-scraper:latest .
 ```
 
 # Example usage
