@@ -31,15 +31,17 @@ failed_login = "Please try again or email for support"
 file_extension = ".tar"
 downloads_dir_example = os.path.expanduser("~/Downloads")
 
-# throttle params
+# throttle params (seconds) - to avoid overloading the server with requests and to avoid getting blocked by the server for too many requests in a short time period
 default_period_duration = 10 * 60
 default_chunks_per_period = 1000
 default_chunk_length = 1 * 1024
 
-# download errors handling params
+# download errors handling params (seconds) - to avoid overloading the server and to avoid losing data due to network errors  
 default_relogin_duration = 10 * 60
 default_nb_tries_reconnection = 5
 default_reconnection_duration = 10 * 60
+default_choice_sensors = 'all'
+default_choice_runs_file = 'all'
 
 
 class Datasets:
@@ -62,7 +64,10 @@ class Datasets:
         self.datasets_file = Datasets.get_dataset_file(parse_args)
 
         # read datasets file
-        self.datasets = Datasets.get_datasets(self.datasets_file)
+        self.choice_sensors = parse_args.choice_sensors.split(',')
+        self.choice_runs_file = parse_args.choice_runs_file
+        self.datasets = Datasets.get_datasets(self.datasets_file, self.choice_runs_file, self.choice_sensors)
+
 
     @staticmethod
     def get_dataset_file(parse_args):
@@ -86,7 +91,7 @@ class Datasets:
             parse_args.datasets_file)
 
     @staticmethod
-    def get_datasets(datasets_file):
+    def get_datasets(datasets_file, choice_runs_file, choice_sensors):
         """Reads known datasets list and file patterns from input file.
 
         Args:
@@ -99,12 +104,28 @@ class Datasets:
 
         print("reading datasets_file: " + datasets_file)
         datasets = []
+        # choose dataset and sensor type to download
+        if choice_runs_file == 'all':
+            choice_runs = 'all'
+        else:
+            with open(choice_runs_file, 'r') as f:
+                choice_runs = f.read().splitlines()
         with open(datasets_file, "r") as file_handle:
             lines = file_handle.readlines()
             for line in lines:
                 line = line.strip("\n").split(",")
-                dataset = {"dataset": line[0], "file_patterns": line[1:]}
-                datasets.append(dataset)
+                if choice_runs == 'all' or line[0] in choice_runs: # choose this run
+                    if choice_sensors[0] == 'all':
+                        dataset = {"dataset": line[0], "file_patterns": line[1:]}
+                    else: # not all sensors
+                        exist_sensors = [] # sensors that will be downloaded
+                        for exist_sensor in line[1:]: # enumerate exist_sensor in this run
+                            for choice_sensor in choice_sensors: # enumerate choice_sensor the user want to download
+                                if choice_sensor in exist_sensor: # if choice_sensor is in exist_sensor
+                                    exist_sensors.append(exist_sensor) # add exist_sensor to exist_sensors
+                        dataset = {"dataset": line[0], "file_patterns": exist_sensors}
+                    datasets.append(dataset)
+
         print("got num_datasets: " + str(len(datasets)))
         return datasets
 
@@ -695,6 +716,18 @@ if __name__ == "__main__":
         default=default_nb_tries_reconnection,
         help="Number of downloading tries for a file  e.g. " +
              str(default_nb_tries_reconnection))
+    argument_parser.add_argument(
+        "--choice_sensors",
+        dest="choice_sensors",
+        type=str,
+        default=default_choice_sensors,
+        help="choice of sensors in [tags, stereo_centre, stereo_left, stereo_right, vo, mono_left, mono_right, mono_rear, lms_front, lms_rear, ldmrs, gps, all] to download e.g. " + default_choice_sensors)
+    argument_parser.add_argument(
+        "--choice_runs_file",
+        dest="choice_runs_file",
+        type=str,
+        default=default_choice_runs_file,
+        help="choice of runs recorded in a file to download, if 'all' all runs are downloaded")
 
     # parse CL
     args = argument_parser.parse_args()
